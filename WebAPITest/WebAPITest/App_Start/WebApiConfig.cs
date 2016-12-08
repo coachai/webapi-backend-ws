@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.ExceptionHandling;
 
 namespace WebAPITest
 {
@@ -12,13 +13,15 @@ namespace WebAPITest
             // Web API configuration and services
 
             // Web API routes
+            config.Filters.Add(new VersionCheckFilter());
             config.MapHttpAttributeRoutes();
+            config.Services.Replace(typeof(IExceptionHandler),new NotFoundHandler());
 
-            //config.Routes.MapHttpRoute(
-            //    name: "DefaultApi",
-            //    routeTemplate: "api/{controller}/{id}",
-            //    defaults: new { id = RouteParameter.Optional }
-            //);
+            config.Routes.MapHttpRoute(
+                name: "defaultapi",
+                routeTemplate: "api/{controller}/{id}",
+                defaults: new { id = RouteParameter.Optional }
+            );
         }
     }
 }

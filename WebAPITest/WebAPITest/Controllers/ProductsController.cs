@@ -34,12 +34,13 @@ namespace WebAPITest.Controllers
         { return products;
         }
 
-        public IHttpActionResult GetProduct(int Id)
+        public Product GetProduct(int Id)
             {
+            
             var product = products.FirstOrDefault((p) => p.Id == Id);
             if (product==null)
-                return NotFound();
-            return Ok(product);
+                throw new NotFoundException();
+            return product;
 
             
            }
