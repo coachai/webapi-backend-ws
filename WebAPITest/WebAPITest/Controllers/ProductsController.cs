@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.Azure;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -11,14 +14,11 @@ namespace WebAPITest.Controllers
     public class ProductsController : ApiController
     {
 
-        Product[] products = new Product[]
-        {
-           new Product { Id = 1, Name= "Jacket",     Category= "Clothes",   Price= 23.3M },
-           new Product { Id = 2, Name = "Tomato Soup", Category = "Groceries", Price = 1 },
-            new Product { Id = 3, Name = "Yo-yo", Category = "Toys", Price = 3.75M },
-            new Product { Id = 4, Name = "Hammer", Category = "Hardware", Price = 16.99M }
-
-        };
+        Product product1 = new Product("Jacket", "Clothes", 23.3);
+        Product product2 = new Product("Tomato Soup", "Groceries", 1);
+        Product product3 = new Product("Yo-yo","Toys", 3.75);
+        Product product4 = new Product("Hammer", "Hardware", 16.99);
+     
 
         Review []review = new Review[]
             {
@@ -28,28 +28,54 @@ namespace WebAPITest.Controllers
             new Review { Id = 4, ProductId = 4, Rating = 2, Text = "Fourth" }
 
             };
-
+        private IEnumerable<Product> products;
 
         public IEnumerable<Product>  GetAllProducts()
         { return products;
         }
 
-        public Product GetProduct(int Id)
-            {
+        //public Product GetProduct(int Id)
+        //    {
             
-            var product = products.FirstOrDefault((p) => p.Id == Id);
-            if (product==null)
-                throw new NotFoundException();
-            return product;
+        // //   var product = products.FirstOrDefault((p) => p.Id == Id);
+        //    if (product==null)
+        //        throw new NotFoundException();
+        //    return product;
 
             
-           }
+        //   }
 
         [Route("{productId}/reviews")]
         [HttpGet]
         public IEnumerable<Review> GetReviewsForProduct(int productId)
         {
             return review.Where((r) => r.ProductId == productId);
+
+        }
+
+        private CloudTableClient CreateTableClient()
+        { CloudStorageAccount storageAccount = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"));
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+         
+            return tableClient;
+        }
+
+        public void InitializeSampleData()
+        {
+            CloudTable table = CreateTableClient().GetTableReference("Products");
+            table.CreateIfNotExists();
+
+            var op1 = TableOperation.InsertOrReplace(product1);
+            table.Execute(op1);
+
+            var op2 = TableOperation.InsertOrReplace(product2);
+            table.Execute(op2);
+
+            var op3 = TableOperation.InsertOrReplace(product3);
+            table.Execute(op3);
+
+            var op4 = TableOperation.InsertOrReplace(product4);
+            table.Execute(op4);
 
         }
     }
